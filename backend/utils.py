@@ -59,37 +59,40 @@ def upsert_user(user_id: int, timezone: Optional[str] = None, prefs: Optional[st
         session.refresh(user)
         return user
 
+def get_or_create_drink_by_name(session, name: str, ingredients_json: Any = None, instructions: Optional[str] = None, created_by_user_id: Optional[int] = None):
+    # Fuzzy match before anything else
+    drink = fuzzy_drink_exists(session, name)
+    if drink:
+        return drink
+    api_drink_data = cocktail_api.search_drink_by_name(name)
+    if api_drink_data:
+        formatted_data = cocktail_api.format_drink_for_db(api_drink_data)
+        drink = Drink(
+            name=formatted_data['name'],
+            ingredients_json=formatted_data['ingredients_json'],
+            measures_json=formatted_data['measures_json'],
+            instructions=formatted_data['instructions'],
+            created_by_user_id=created_by_user_id,
+            cocktail_db_id=formatted_data['cocktail_db_id'],
+            image_url=formatted_data['image_url'],
+            category=formatted_data['category'],
+            alcoholic=formatted_data['alcoholic'],
+            glass=formatted_data['glass']
+        )
+    else:
+        drink = Drink(
+            name=name, 
+            ingredients_json=ingredients_json, 
+            instructions=instructions, 
+            created_by_user_id=created_by_user_id
+        )
+    drink.embedding = compute_embedding(drink)
+    session.add(drink)
+    return drink
+
 def upsert_drink(name: str, ingredients_json: Any = None, instructions: Optional[str] = None, created_by_user_id: Optional[int] = None) -> Drink:
     with Session(engine) as session:
-        # Fuzzy match before anything else
-        drink = fuzzy_drink_exists(session, name)
-        if drink:
-            pass
-        else:
-            api_drink_data = cocktail_api.search_drink_by_name(name)
-            if api_drink_data:
-                formatted_data = cocktail_api.format_drink_for_db(api_drink_data)
-                drink = Drink(
-                    name=formatted_data['name'],
-                    ingredients_json=formatted_data['ingredients_json'],
-                    measures_json=formatted_data['measures_json'],
-                    instructions=formatted_data['instructions'],
-                    created_by_user_id=created_by_user_id,
-                    cocktail_db_id=formatted_data['cocktail_db_id'],
-                    image_url=formatted_data['image_url'],
-                    category=formatted_data['category'],
-                    alcoholic=formatted_data['alcoholic'],
-                    glass=formatted_data['glass']
-                )
-            else:
-                drink = Drink(
-                    name=name, 
-                    ingredients_json=ingredients_json, 
-                    instructions=instructions, 
-                    created_by_user_id=created_by_user_id
-                )
-            drink.embedding = compute_embedding(drink)
-            session.add(drink)
+        drink = get_or_create_drink_by_name(session, name, ingredients_json, instructions, created_by_user_id)
         session.commit()
         session.refresh(drink)
         return drink

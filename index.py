@@ -27,6 +27,46 @@ async def on_message(message):
         return
     if message.content.lower() == "!hello":
         await message.channel.send("Hello, world!")
+    # !howto command: !howto "Drink Name"
+    if message.content.lower().startswith("!howto"):
+        try:
+            match = re.match(r'!howto\s+["“”]([^"“”]+)["“”]', message.content)
+            if not match:
+                await message.channel.send("Usage: !howto \"Drink Name\"")
+                return
+            drink_name = match.group(1)
+            from backend.utils import get_or_create_drink_by_name
+            from backend.database import engine
+            from sqlmodel import Session
+            with Session(engine) as session:
+                drink = get_or_create_drink_by_name(session, drink_name)
+                session.commit()
+                session.refresh(drink)
+            if not drink:
+                await message.channel.send(f"No drink found for '{drink_name}'.")
+                return
+            # Build instructions and ingredients text
+            instructions = drink.instructions or "No instructions available."
+            lines = []
+            if drink.ingredients_json:
+                for i, ing in enumerate(drink.ingredients_json):
+                    amt = ""
+                    if drink.measures_json and i < len(drink.measures_json):
+                        amt = drink.measures_json[i]
+                    line = f"{amt} {ing}".strip()
+                    lines.append(line)
+            ingredients_text = "\n".join(lines) if lines else "No ingredients available."
+            embed = discord.Embed(
+                title=f"How to make {drink.name}",
+                description=instructions,
+                color=0x88c0ee
+            )
+            if drink.image_url:
+                embed.set_thumbnail(url=drink.image_url)
+            embed.add_field(name="Ingredients", value=ingredients_text, inline=False)
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            await message.channel.send(f"Error: {e}")
     # !drink command: !drink "Margarita" qty:2
     if message.content.lower().startswith("!drink"):
         try:
