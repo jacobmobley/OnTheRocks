@@ -1,0 +1,24 @@
+# Core web and API
+fastapi
+uvicorn
+
+# Database and ORM
+sqlmodel
+sqlalchemy
+
+# Discord bot
+discord.py
+dotenv
+
+# HTTP requests
+requests
+
+# Vector search and math
+faiss-cpu
+numpy
+
+# Fuzzy matching
+rapidfuzz
+
+# Typing (for completeness, but not strictly required at runtime)
+# typing-extensions 
