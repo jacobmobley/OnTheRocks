@@ -149,7 +149,7 @@ def populate_from_cocktaildb_by_letter():
                 # Commit after each letter to avoid large transactions
                 session.commit()
                 print(f"Added cocktails for letter: {letter}")
-                time.sleep(1)
+                time.sleep(5)
                 
             except Exception as e:
                 print(f"Error processing letter {letter}: {e}")
