@@ -2,3 +2,4 @@
 backend/database.db
 index_old.py
 .venv/
+database.db
