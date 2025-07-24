@@ -1,3 +1,4 @@
 .env
 backend/database.db
 index_old.py
+.venv/
