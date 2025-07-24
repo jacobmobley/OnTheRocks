@@ -137,6 +137,7 @@ def suggest_drink(user_weights: dict, k: int = 1, logged_drinks: Optional[list] 
                 "measures": d.measures_json,
                 "image_url": d.image_url,
                 "similarity_score": 1.0 - float(dist),
-                "reason": f"Rank {rank+1} of top {k} by ingredient profile"
+                "reason": f"Rank {rank+1} of top {k} by ingredient profile",
+                "tags": d.tags
             })
         return results 
