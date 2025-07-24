@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from sqlmodel import SQLModel, create_engine, Session, select
 from .models import User, Drink, UserDrinkLog, DatabaseMetadata
 from rapidfuzz import process, fuzz
+import time
 
 DATABASE_URL = "sqlite:///./database.db"
 engine = create_engine(DATABASE_URL, echo=True)
@@ -148,6 +149,7 @@ def populate_from_cocktaildb_by_letter():
                 # Commit after each letter to avoid large transactions
                 session.commit()
                 print(f"Added cocktails for letter: {letter}")
+                time.sleep(1)
                 
             except Exception as e:
                 print(f"Error processing letter {letter}: {e}")
