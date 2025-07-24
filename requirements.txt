@@ -22,3 +22,4 @@ rapidfuzz
 
 # Typing (for completeness, but not strictly required at runtime)
 # typing-extensions 
+scikit-learn 

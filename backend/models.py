@@ -19,13 +19,16 @@ class Drink(SQLModel, table=True):
     measures_json: Optional[Any] = Field(default=None, sa_column=Column(sa.JSON))  # Parallel to ingredients_json
     instructions: Optional[str] = None
     created_by_user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
-    embedding: Optional[List[float]] = Field(default=None, sa_column=Column(sa.PickleType))
     # TheCocktailDB fields
     cocktail_db_id: Optional[str] = None
     image_url: Optional[str] = None
     category: Optional[str] = None
     alcoholic: Optional[str] = None
     glass: Optional[str] = None
+    last_updated: datetime = Field(default_factory=datetime.utcnow)  # Track when drink was last updated
+    # Ingredient weights for KNN recommendations
+    weights: Optional[dict] = Field(default=None, sa_column=Column(sa.JSON))  # {ingredient: normalized_weight, ...}
+    tags: Optional[list] = Field(default=None, sa_column=Column(sa.JSON))
     creator: Optional[User] = Relationship(back_populates="drinks")
     logs: List["UserDrinkLog"] = Relationship(back_populates="drink")
 
@@ -38,4 +41,10 @@ class UserDrinkLog(SQLModel, table=True):
     units: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     user: Optional[User] = Relationship(back_populates="logs")
-    drink: Optional[Drink] = Relationship(back_populates="logs") 
+    drink: Optional[Drink] = Relationship(back_populates="logs")
+
+class DatabaseMetadata(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    key: str = Field(unique=True)  # e.g., "last_cocktaildb_update"
+    value: str  # Store as string, can be parsed as needed
+    updated_at: datetime = Field(default_factory=datetime.utcnow) 
